@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-b
+  labels:
+    app: service-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-b
+  template:
+    metadata:
+      labels:
+        app: service-b
+    spec:
+      containers:
+      - name: service-b
+        image: saja555/service-b:latest 
+        ports:
+        - containerPort: 5001
+        readinessProbe:
+          httpGet:
+            path: /service-b/health
+            port: 5001
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /service-b/health
+            port: 5001
+          initialDelaySeconds: 10
+          periodSeconds: 15

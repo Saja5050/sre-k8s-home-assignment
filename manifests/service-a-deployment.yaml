@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-a
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-a
+  template:
+    metadata:
+      labels:
+        app: service-a
+    spec:
+      containers:
+        - name: service-a
+          image: saja555/bitcoin-app:latest
+          ports:
+            - containerPort: 5000
+          livenessProbe:
+            httpGet:
+              path: /service-a/health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /service-a/health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10

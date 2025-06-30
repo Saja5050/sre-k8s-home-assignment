@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bitcoin Price Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(145deg, #1a1200, #000000);
+      color: #fff;
+    }
+
+    .container {
+      background: #1c1c1c;
+      border: 2px solid #ffd70033;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 0 8px rgba(255, 215, 0, 0.15);
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .icon {
+      width: 50px;
+      height: 50px;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      margin-bottom: 1.5rem;
+      color: #ffd700;
+    }
+
+    .price-block {
+      background: #2a2a2a;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.2rem;
+      text-align: left;
+      border-left: 4px solid #ffd700aa;
+    }
+
+    .label {
+      font-size: 0.95rem;
+      color: #ccc;
+    }
+
+    .value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-top: 0.4rem;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #latest {
+      color: #32e0c4;
+    }
+
+    #avg {
+      color: #ffcc00;
+    }
+
+    .explanation {
+      font-size: 0.75rem;
+      color: #aaa;
+      margin-top: 0.3rem;
+      font-style: italic;
+    }
+
+    .footer {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 1.5rem;
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        margin: 1rem;
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg" class="icon" alt="Bitcoin logo" />
+    <h1>Bitcoin Price Tracker</h1>
+
+    <div class="price-block">
+      <div class="label">Current Bitcoin Price</div>
+      <div class="value"><span id="latest">N/A</span> $</div>
+      <div class="explanation">Real-time market value</div>
+    </div>
+
+    <div class="price-block">
+      <div class="label">10-Minute Average Price</div>
+      <div class="value"><span id="avg">N/A</span> $</div>
+      <div class="explanation">Based on last 10 updates</div>
+    </div>
+
+    <div class="footer">Updated every minute • Data via CoinGecko API</div>
+  </div>
+
+  <script>
+  async function fetchData() {
+    try {
+      const res = await fetch("/service-a/data");
+      const data = await res.json();
+      if (data.latest && data.latest !== "N/A") {
+        document.getElementById("latest").textContent = data.latest;
+      }
+      if (data.avg && data.avg !== "N/A") {
+        document.getElementById("avg").textContent = data.avg;
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  }
+
+  fetchData();
+  setInterval(fetchData, 60000);
+</script>
+</body>
+</html>

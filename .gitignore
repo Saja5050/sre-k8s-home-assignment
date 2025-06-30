@@ -1,0 +1,26 @@
+# VS Code
+.vscode/
+*.code-workspace
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.env
+.env.*
+
+# OS/System
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+*.pid
+
+# Kubernetes config
+.kube/

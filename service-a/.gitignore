@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environment
+venv/
+.env
+ENV/
+env.bak/
+*.env
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Test cache
+.pytest_cache/
+
+# Byte-compiled files
+*.pyc
+
+# Docker artifacts
+*.tar
