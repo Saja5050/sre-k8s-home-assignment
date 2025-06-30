@@ -6,7 +6,7 @@
 
 ## 📌 Overview
 
-This assignment provisions a **production-ready AKS (Azure Kubernetes Service)** cluster using Azure CLI. It deploys two services (**Service A** and **Service B**) with proper ingress routing, RBAC, readiness/liveness probes, and a network policy that isolates Service B from Service A.  
+This assignment provisions a **production-ready AKS (Azure Kubernetes Service)** cluster using Azure CLI. It deploys two services (**Service A** and **Service B**) with proper ingress routing, RBAC, readiness/liveness probes, and a network policy that isolates Service B from Service A.
 **Service A** retrieves and logs Bitcoin prices periodically using a public API.
 
 ---
@@ -14,22 +14,29 @@ This assignment provisions a **production-ready AKS (Azure Kubernetes Service)**
 ## 📁 Project Structure
 
 ```
-├── manifests/
+🔍 manifests/
+│   ├── deny-service-a-to-b-networkpolicy.yaml
 │   ├── service-a-deployment.yaml
-│   ├── service-b-deployment.yaml
+│   ├── service-a-ingress.yaml
 │   ├── service-a-service.yaml
-│   ├── service-b-service.yaml
-│   ├── ingress.yaml
-│   ├── networkpolicy.yaml
-│   └── ingress-controller.yaml
-├── service-a/ 
-│   
+│   ├── service-b-deployment.yaml
+│   ├── service-b-ingress.yaml
+│   └── service-b-service.yaml
+├── service-a/
+│   ├── app.py
+│   ├── tracker.py
+│   ├── templates/
+│   │   └── index.html
+│   ├── requirements.txt
+│   └── Dockerfile
 ├── service-b/
-│   
+│   ├── app.py
+│   ├── requirements.txt
+│   └── Dockerfile
 ├── cluster-create.sh
 └── README.md
+```
 
-````
 ## ☁️ AKS Cluster Setup
 
 The cluster was created using the following Azure CLI command:
@@ -46,19 +53,19 @@ az aks create \
   --network-plugin kubenet \
   --network-policy calico \
   --location eastus
-````
+```
 
 ### 🔍 Parameter Rationale
 
-| Parameter                      | Justification                                                              |
-| ------------------------------ | -------------------------------------------------------------------------- |
-| `--node-count 1`               | Enough to support 2 microservices for this demo, minimizes cost.           |
-| `--enable-addons monitoring`   | Ensures cluster observability using Azure Monitor.                         |
-| `--load-balancer-sku standard` | Required for Calico and future scalability.                                |
-| `--node-vm-size Standard_B2ms` | Budget-friendly VM with sufficient CPU/memory for our services.            |
-| `--network-plugin kubenet`     | Lightweight, compatible with Calico and default for custom policies.       |
-| `--network-policy calico`      | Enables defining network policies to restrict cross-service communication. |
-| `--ssh-key-value`              | Allows secure admin access if troubleshooting is needed.                   |
+| Parameter                      | Justification                                                                                                                                                                                      |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--node-count 1`               | Enough to support 2 microservices for this assignment, minimizes cost. My Azure Free Subscription also limits available cores and VM quotas, preventing allocation of separate nodes for each pod. |
+| `--enable-addons monitoring`   | Ensures cluster observability using Azure Monitor.                                                                                                                                                 |
+| `--load-balancer-sku standard` | Required for Calico and future scalability.                                                                                                                                                        |
+| `--node-vm-size Standard_B2ms` | Budget-friendly VM with sufficient CPU/memory for our services.                                                                                                                                    |
+| `--network-plugin kubenet`     | Lightweight, compatible with Calico and default for custom policies.                                                                                                                               |
+| `--network-policy calico`      | Enables defining network policies to restrict cross-service communication.                                                                                                                         |
+| `--ssh-key-value`              | Allows secure admin access if troubleshooting is needed.                                                                                                                                           |
 
 ---
 
@@ -136,22 +143,47 @@ livenessProbe:
 
 ---
 
-## 🧪 How to Test
+## 🧲 How to Test
 
 1. Deploy the cluster using `cluster-create.sh`
+
 2. Apply all manifests from `manifests/` directory
+
 3. Access:
 
    * `http://4.246.244.95/service-a/`
    * `http://4.246.244.95/service-b/`
-4. Verify network policy:
 
-   ```bash
-   kubectl run test-service-a --rm -i -t --image=curlimages/curl --labels="app=service-a" -- sh
-   curl http://service-b:5001/health
-   ```
+4. Verify network policy behavior with 3 test cases:
 
-   ➤ Should **fail** if network policy is active
+### Test 1: Service A → Service B (should be blocked)
+
+```bash
+kubectl run test-service-a --rm -i -t --image=curlimages/curl --labels="app=service-a" -- sh
+curl service-b.default.svc.cluster.local/service-b/health
+```
+
+**Expected:** ❌ Connection blocked (network policy in effect)
+
+### Test 2: Service B → Service A (should be allowed)
+
+```bash
+kubectl run test-service-b --rm -i -t --image=curlimages/curl --labels="app=service-b" -- sh
+curl service-a.default.svc.cluster.local/service-a/health
+```
+
+**Expected:** ✅ Connection allowed, response `OK`
+
+### Test 3: Other pod → Service B (should be allowed)
+
+```bash
+kubectl run test-other --rm -i -t --image=curlimages/curl --labels="app=other" -- sh
+curl service-b.default.svc.cluster.local/service-b/health
+```
+
+**Expected:** ✅ Connection allowed
+
+![Test Results Screenshot](screenshots/test-network-policy.png)
 
 ---
 
@@ -162,12 +194,3 @@ To stop the cluster and reduce costs:
 ```bash
 az aks stop --name bitcoin-k8s-cluster --resource-group sre-home-assignment-rg
 ```
-
----
-
-## 🧼 Cleanup
-
-To stop the cluster and reduce costs:
-
-```bash
-az aks stop --name bitcoin-k8s-cluster --resource-group sre-home-assignment-rg

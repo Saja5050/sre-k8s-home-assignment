@@ -12,9 +12,9 @@ spec:
   ingress:
   - from:
     - namespaceSelector: {}
-  - from:
-    - podSelector:
+      podSelector:
         matchExpressions:
         - key: app
           operator: NotIn
           values: ["service-a"]
+          
